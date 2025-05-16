@@ -1,0 +1,138 @@
+# Copyright (C) 2023 ckitte
+# This file is distributed under the GPL2.
+msgid ""
+msgstr ""
+"Project-Id-Version: Configurable Text Plugin 1.1\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/configurable-text-plugin\n"
+"Last-Translator: ckitte\n"
+"Language-Team: German\n"
+"Language: de_DE\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2023-11-30T12:00:00+00:00\n"
+"PO-Revision-Date: 2023-11-30T12:00:00+00:00\n"
+"X-Generator: WP-CLI 2.7.1\n"
+"X-Domain: configurable-text-plugin\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. Plugin Name of the plugin
+msgid "Configurable Text Plugin"
+msgstr "Konfigurierbares Text Plugin"
+
+#. Plugin URI of the plugin
+msgid "https://example.com/configurable-text-plugin"
+msgstr "https://example.com/configurable-text-plugin"
+
+#. Description of the plugin
+msgid "A simple plugin that outputs configurable text via customizable shortcode with rotation effects."
+msgstr "Ein einfaches Plugin, das konfigurierbaren Text über einen anpassbaren Shortcode mit Rotationseffekten ausgibt."
+
+#. Author of the plugin
+msgid "ckitte"
+msgstr "ckitte"
+
+#. Author URI of the plugin
+msgid "http://URI_Of_The_Plugin_Author"
+msgstr "http://URI_Of_The_Plugin_Author"
+
+#: configurable-text-plugin.php:28
+msgid "Configurable Text Settings"
+msgstr "Einstellungen für konfigurierbaren Text"
+
+#: configurable-text-plugin.php:29
+msgid "Configurable Text"
+msgstr "Konfigurierbarer Text"
+
+#: configurable-text-plugin.php:134
+msgid "Settings saved."
+msgstr "Einstellungen gespeichert."
+
+#: configurable-text-plugin.php:165
+msgid "Text Instance #%s"
+msgstr "Text-Instanz #%s"
+
+#: configurable-text-plugin.php:167
+msgid "Remove"
+msgstr "Entfernen"
+
+#: configurable-text-plugin.php:172
+msgid "Text to Display"
+msgstr "Anzuzeigender Text"
+
+#: configurable-text-plugin.php:174
+msgid "Enter the text you want to display with this shortcode."
+msgstr "Geben Sie den Text ein, den Sie mit diesem Shortcode anzeigen möchten."
+
+#: configurable-text-plugin.php:178
+msgid "Shortcode Name"
+msgstr "Shortcode-Name"
+
+#: configurable-text-plugin.php:181
+msgid "Customize the shortcode name (letters, numbers, and underscores only)."
+msgstr "Passen Sie den Shortcode-Namen an (nur Buchstaben, Zahlen und Unterstriche)."
+
+#: configurable-text-plugin.php:182
+msgid "Current shortcode: [%s]"
+msgstr "Aktueller Shortcode: [%s]"
+
+#: configurable-text-plugin.php:187
+msgid "Rotation Speed (RPM)"
+msgstr "Rotationsgeschwindigkeit (U/min)"
+
+#: configurable-text-plugin.php:189
+msgid "Set the rotation speed in rotations per minute (0 = no rotation)."
+msgstr "Stellen Sie die Rotationsgeschwindigkeit in Umdrehungen pro Minute ein (0 = keine Rotation)."
+
+#: configurable-text-plugin.php:196
+msgid "Add New Text Instance"
+msgstr "Neue Text-Instanz hinzufügen"
+
+#: configurable-text-plugin.php:200
+msgid "Save All Instances"
+msgstr "Alle Instanzen speichern"
+
+#: configurable-text-plugin.php:219
+msgid "Text Instance #"
+msgstr "Text-Instanz #"
+
+#: configurable-text-plugin.php:220
+msgid "Remove"
+msgstr "Entfernen"
+
+#: configurable-text-plugin.php:225
+msgid "Text to Display"
+msgstr "Anzuzeigender Text"
+
+#: configurable-text-plugin.php:226
+msgid "Enter the text you want to display with this shortcode."
+msgstr "Geben Sie den Text ein, den Sie mit diesem Shortcode anzeigen möchten."
+
+#: configurable-text-plugin.php:230
+msgid "Shortcode Name"
+msgstr "Shortcode-Name"
+
+#: configurable-text-plugin.php:233
+msgid "Customize the shortcode name (letters, numbers, and underscores only)."
+msgstr "Passen Sie den Shortcode-Namen an (nur Buchstaben, Zahlen und Unterstriche)."
+
+#: configurable-text-plugin.php:234
+msgid "Current shortcode: [configurable_text_"
+msgstr "Aktueller Shortcode: [configurable_text_"
+
+#: configurable-text-plugin.php:239
+msgid "Rotation Speed (RPM)"
+msgstr "Rotationsgeschwindigkeit (U/min)"
+
+#: configurable-text-plugin.php:241
+msgid "Set the rotation speed in rotations per minute (0 = no rotation)."
+msgstr "Stellen Sie die Rotationsgeschwindigkeit in Umdrehungen pro Minute ein (0 = keine Rotation)."
+
+#: configurable-text-plugin.php:252
+msgid "Are you sure you want to remove this text instance?"
+msgstr "Sind Sie sicher, dass Sie diese Text-Instanz entfernen möchten?"
+
+#: configurable-text-plugin.php:145
+#: configurable-text-plugin.php:225
+msgid "Default text"
+msgstr "Standardtext"
