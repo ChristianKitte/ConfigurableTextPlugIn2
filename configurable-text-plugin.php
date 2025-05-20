@@ -209,7 +209,11 @@ function ctp_render_settings_page()
 
             $instances[$id] = array(
                 'name' => sanitize_text_field($instance['name']),
-                'text' => wp_kses_post($instance['text']),
+                'text' => isset($instance['render_html']) && $instance['render_html'] ? 
+                    wp_kses_post($instance['text']) : 
+                    (isset($instance['preserve_formatting']) && $instance['preserve_formatting'] ? 
+                        sanitize_textarea_field($instance['text']) : 
+                        sanitize_text_field($instance['text'])),
                 'shortcode_name' => $shortcode_name,
                 'rotation_speed' => intval($instance['rotation_speed']),
                 'rotation_axis' => sanitize_text_field($instance['rotation_axis']),
@@ -219,11 +223,13 @@ function ctp_render_settings_page()
                 'font_weight' => sanitize_text_field($instance['font_weight']),
                 'font_style' => sanitize_text_field($instance['font_style']),
                 'text_color' => sanitize_text_field($instance['text_color']),
-                'line_height' => sanitize_text_field($instance['line_height'])
+                'line_height' => sanitize_text_field($instance['line_height']),
+                'preserve_formatting' => isset($instance['preserve_formatting']) ? 1 : 0,
+                'render_html' => isset($instance['render_html']) ? 1 : 0
             );
 
             update_option('ctp_instances', $instances);
-            $success_message = sprintf(esc_html__('Instance #%s saved.', 'configurable-text-plugin'), $id);
+            $success_message = sprintf(esc_html__('Instance "%s" saved.', 'configurable-text-plugin'), $instance['name']);
 
             // Re-register shortcodes
             ctp_register_shortcodes();
@@ -235,9 +241,10 @@ function ctp_render_settings_page()
         $id = sanitize_text_field($_POST['instance_id']);
 
         if (isset($instances[$id])) {
+            $instance_name = $instances[$id]['name'];
             unset($instances[$id]);
             update_option('ctp_instances', $instances);
-            $success_message = sprintf(esc_html__('Instance #%s deleted.', 'configurable-text-plugin'), $id);
+            $success_message = sprintf(esc_html__('Instance "%s" deleted.', 'configurable-text-plugin'), $instance_name);
 
             // Re-register shortcodes
             ctp_register_shortcodes();
@@ -257,7 +264,11 @@ function ctp_render_settings_page()
 
                 $instances[$id] = array(
                     'name' => sanitize_text_field($instance['name']),
-                    'text' => wp_kses_post($instance['text']),
+                    'text' => isset($instance['render_html']) && $instance['render_html'] ? 
+                        wp_kses_post($instance['text']) : 
+                        (isset($instance['preserve_formatting']) && $instance['preserve_formatting'] ? 
+                            sanitize_textarea_field($instance['text']) : 
+                            sanitize_text_field($instance['text'])),
                     'shortcode_name' => $shortcode_name,
                     'rotation_speed' => intval($instance['rotation_speed']),
                     'rotation_axis' => sanitize_text_field($instance['rotation_axis']),
@@ -267,7 +278,9 @@ function ctp_render_settings_page()
                     'font_weight' => sanitize_text_field($instance['font_weight']),
                     'font_style' => sanitize_text_field($instance['font_style']),
                     'text_color' => sanitize_text_field($instance['text_color']),
-                    'line_height' => sanitize_text_field($instance['line_height'])
+                    'line_height' => sanitize_text_field($instance['line_height']),
+                    'preserve_formatting' => isset($instance['preserve_formatting']) ? 1 : 0,
+                    'render_html' => isset($instance['render_html']) ? 1 : 0
                 );
             }
         }
@@ -279,8 +292,8 @@ function ctp_render_settings_page()
         ctp_register_shortcodes();
     }
 
-    // Display success message if any
-    if (!empty($success_message)) {
+    // Display success message if any (only for non-AJAX requests)
+    if (!empty($success_message) && !wp_doing_ajax()) {
         echo '<div class="notice notice-success is-dismissible"><p>' . $success_message . '</p></div>';
     }
 
@@ -302,7 +315,9 @@ function ctp_render_settings_page()
                 'font_weight' => 'normal',
                 'font_style' => 'normal',
                 'text_color' => '#000000',
-                'line_height' => '1.5'
+                'line_height' => '1.5',
+                'preserve_formatting' => 0,
+                'render_html' => 0
             )
         );
         update_option('ctp_instances', $instances);
@@ -358,11 +373,18 @@ function ctp_render_settings_page()
                     <div class="ctp-instance card mb-4" id="ctp-instance-<?php echo esc_attr($id); ?>">
                         <div class="card-body">
                             <div class="d-flex justify-content-end mb-3">
+                                <form method="post" action="" class="needs-validation" novalidate>
+                                    <?php wp_nonce_field('ctp_instance_nonce', 'ctp_instance_nonce'); ?>
+                                    <input type="hidden" name="instance_id" value="<?php echo esc_attr($id); ?>">
+                                    <button type="submit" name="ctp_save_instance" class="btn btn-sm btn-success me-2" id="save-instance-<?php echo esc_attr($id); ?>">
+                                        <i class="dashicons dashicons-saved" style="vertical-align: text-bottom;"></i>
+                                        <?php esc_html_e('Save Instance', 'configurable-text-plugin'); ?>
+                                    </button>
+                                </form>
                                 <form method="post" action="" class="d-inline">
                                     <?php wp_nonce_field('ctp_instance_nonce', 'ctp_instance_nonce'); ?>
                                     <input type="hidden" name="instance_id" value="<?php echo esc_attr($id); ?>">
-                                    <button type="submit" name="ctp_delete_instance" class="btn btn-sm btn-outline-danger" 
-                                        onclick="return confirm('<?php echo esc_js(__('Are you sure you want to delete this instance?', 'configurable-text-plugin')); ?>')">
+                                    <button type="submit" name="ctp_delete_instance" class="btn btn-sm btn-outline-danger">
                                         <?php esc_html_e('Delete Instance', 'configurable-text-plugin'); ?>
                                     </button>
                                 </form>
@@ -387,6 +409,33 @@ function ctp_render_settings_page()
                                           name="ctp_instance[<?php echo esc_attr($id); ?>][text]"
                                           rows="3"><?php echo esc_textarea($instance['text']); ?></textarea>
                                 <div class="form-text"><?php esc_html_e('Enter the text you want to display with this shortcode.', 'configurable-text-plugin'); ?></div>
+                            </div>
+
+                            <div class="ctp-form-row mb-4">
+                                <div class="ctp-form-col">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               id="ctp-instance-<?php echo esc_attr($id); ?>-preserve-formatting" 
+                                               name="ctp_instance[<?php echo esc_attr($id); ?>][preserve_formatting]" 
+                                               value="1" <?php checked(isset($instance['preserve_formatting']) && $instance['preserve_formatting'], true); ?>>
+                                        <label class="form-check-label" for="ctp-instance-<?php echo esc_attr($id); ?>-preserve-formatting">
+                                            <?php esc_html_e('Preserve Formatting', 'configurable-text-plugin'); ?>
+                                        </label>
+                                        <div class="form-text"><?php esc_html_e('Keep line breaks and spacing exactly as entered.', 'configurable-text-plugin'); ?></div>
+                                    </div>
+                                </div>
+                                <div class="ctp-form-col">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               id="ctp-instance-<?php echo esc_attr($id); ?>-render-html" 
+                                               name="ctp_instance[<?php echo esc_attr($id); ?>][render_html]" 
+                                               value="1" <?php checked(isset($instance['render_html']) && $instance['render_html'], true); ?>>
+                                        <label class="form-check-label" for="ctp-instance-<?php echo esc_attr($id); ?>-render-html">
+                                            <?php esc_html_e('Render HTML Content', 'configurable-text-plugin'); ?>
+                                        </label>
+                                        <div class="form-text"><?php esc_html_e('Allow HTML tags in the text (use with caution).', 'configurable-text-plugin'); ?></div>
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="ctp-form-row">
@@ -542,12 +591,6 @@ function ctp_render_settings_page()
                                 </div>
                             </div>
 
-                            <div class="mt-3">
-                                <button type="submit" name="ctp_save_instance" class="btn btn-success">
-                                    <i class="dashicons dashicons-saved" style="vertical-align: text-bottom;"></i>
-                                    <?php esc_html_e('Save Instance', 'configurable-text-plugin'); ?>
-                                </button>
-                            </div>
                         </form>
                     </div>
                 </div>
@@ -559,6 +602,211 @@ function ctp_render_settings_page()
 
     <script>
         jQuery(document).ready(function ($) {
+            // Track form changes and highlight save button
+            function setupFormChangeTracking(formSelector) {
+                const forms = $(formSelector);
+
+                forms.each(function() {
+                    const form = $(this);
+                    const saveButton = form.find('button[name="ctp_save_instance"]');
+                    const formId = form.find('input[name="instance_id"]').val();
+
+                    // Store initial form values
+                    let initialValues = form.serialize();
+                    form.data('initial-values', initialValues);
+
+                    // Add change event listener to all form inputs
+                    form.find('input, textarea, select').on('input change', function() {
+                        const currentValues = form.serialize();
+                        const storedInitialValues = form.data('initial-values') || initialValues;
+
+                        // Compare current values with initial values
+                        if (currentValues !== storedInitialValues) {
+                            // Highlight save button
+                            saveButton.addClass('btn-warning').removeClass('btn-success');
+                        } else {
+                            // Remove highlight
+                            saveButton.addClass('btn-success').removeClass('btn-warning');
+                        }
+                    });
+
+                    // Reset tracking after save
+                    form.on('submit', function() {
+                        setTimeout(function() {
+                            saveButton.addClass('btn-success').removeClass('btn-warning');
+                        }, 100);
+                    });
+                });
+            }
+
+            // Setup form change tracking for existing forms
+            setupFormChangeTracking('.ctp-instance form.needs-validation');
+
+            // Setup form change tracking for new forms (event delegation)
+            $(document).on('DOMNodeInserted', '.ctp-instance', function() {
+                const newForm = $(this).find('form.needs-validation');
+                if (newForm.length && !newForm.data('change-tracking-setup')) {
+                    setupFormChangeTracking(newForm);
+                    newForm.data('change-tracking-setup', true);
+                }
+            });
+
+            // Function to show success message
+            function showSuccessMessage(message) {
+                // Create success message element
+                var successMessage = $('<div class="notice notice-success is-dismissible"><p>' + message + '</p></div>');
+
+                // Remove any existing success messages
+                $('.notice').remove();
+
+                // Add the success message at the top of the page
+                $('.wrap > h1').after(successMessage);
+
+                // Add dismiss button
+                successMessage.append('<button type="button" class="notice-dismiss"><span class="screen-reader-text">Dismiss this notice.</span></button>');
+
+                // Handle dismiss button click
+                successMessage.find('.notice-dismiss').on('click', function() {
+                    successMessage.fadeOut(300, function() { $(this).remove(); });
+                });
+
+                // Auto-dismiss after 5 seconds
+                setTimeout(function() {
+                    successMessage.fadeOut(300, function() { $(this).remove(); });
+                }, 5000);
+            }
+
+            // Handle save form submission via AJAX using event delegation
+            $(document).on('submit', '.ctp-instance form', function(e) {
+                // Only intercept save instance forms, not delete forms
+                if ($(this).find('button[name="ctp_save_instance"]').length > 0) {
+                    e.preventDefault();
+
+                    var form = $(this);
+                    var instanceId = form.find('input[name="instance_id"]').val();
+
+                    // Get the main form with all the instance data (the second form in the instance)
+                    var dataForm = $('#ctp-instance-' + instanceId).find('form.needs-validation').eq(1);
+
+                    // Combine data from both forms
+                    var formData = form.serialize() + '&' + dataForm.serialize();
+
+                    // Add action for WordPress AJAX
+                    formData += '&action=ctp_save_instance';
+
+                    // Add nonce with the correct parameter name
+                    var nonce = form.find('input[name="ctp_instance_nonce"]').val();
+                    formData += '&nonce=' + nonce;
+
+                    // Send AJAX request
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: formData,
+                        success: function(response) {
+                            if (response.success) {
+                                showSuccessMessage(response.data.message);
+
+                                // Update the tab label with the new instance name
+                                $('#tab-' + response.data.instance_id + '-tab').text(response.data.instance_name);
+
+                                // Reset form change tracking
+                                const form = $('#ctp-instance-' + response.data.instance_id).find('form.needs-validation');
+                                const saveButton = form.find('button[name="ctp_save_instance"]');
+                                saveButton.addClass('btn-success').removeClass('btn-warning');
+
+                                // Update initial form values for change detection
+                                setTimeout(function() {
+                                    const initialValues = form.serialize();
+                                    form.data('initial-values', initialValues);
+                                }, 200);
+                            } else {
+                                showSuccessMessage(response.data.message);
+                                console.error('Error saving instance:', response);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            showSuccessMessage('<?php echo esc_js(__('An error occurred while saving.', 'configurable-text-plugin')); ?>');
+                            console.error('AJAX Error:', status, error);
+                            console.log('Response:', xhr.responseText);
+                            console.log('Status Code:', xhr.status);
+                            console.log('Form Data:', formData);
+
+                            // Try to parse the response if possible
+                            try {
+                                var jsonResponse = JSON.parse(xhr.responseText);
+                                console.log('Parsed Response:', jsonResponse);
+                            } catch (e) {
+                                console.log('Could not parse response as JSON');
+                            }
+                        }
+                    });
+                }
+            });
+
+            // Handle delete form submission via AJAX using event delegation
+            $(document).on('submit', '.ctp-instance .d-flex form', function(e) {
+                // Only intercept delete instance forms
+                if ($(this).find('button[name="ctp_delete_instance"]').length > 0) {
+                    e.preventDefault();
+
+                    // Confirm deletion
+                    if (!confirm('<?php echo esc_js(__('Are you sure you want to delete this instance?', 'configurable-text-plugin')); ?>')) {
+                        return false;
+                    }
+
+                    var form = $(this);
+                    var formData = form.serialize();
+                    var instanceId = form.find('input[name="instance_id"]').val();
+
+                    // Add action for WordPress AJAX
+                    formData += '&action=ctp_delete_instance';
+
+                    // Add nonce with the correct parameter name
+                    var nonce = form.find('input[name="ctp_instance_nonce"]').val();
+                    formData += '&nonce=' + nonce;
+
+                    // Send AJAX request
+                    $.ajax({
+                        url: ajaxurl,
+                        type: 'POST',
+                        data: formData,
+                        success: function(response) {
+                            if (response.success) {
+                                showSuccessMessage(response.data.message);
+
+                                // Remove the tab and tab content
+                                $('#tab-' + response.data.deleted_id + '-tab').parent().remove();
+                                $('#tab-' + response.data.deleted_id).remove();
+
+                                // Activate the first tab if available
+                                if ($('#ctp-instance-tabs .nav-link').length > 0) {
+                                    $('#ctp-instance-tabs .nav-link:first').tab('show');
+                                }
+                            } else {
+                                showSuccessMessage(response.data.message);
+                                console.error('Error deleting instance:', response);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            showSuccessMessage('<?php echo esc_js(__('An error occurred while deleting.', 'configurable-text-plugin')); ?>');
+                            console.error('AJAX Error:', status, error);
+                            console.log('Response:', xhr.responseText);
+                            console.log('Status Code:', xhr.status);
+                            console.log('Form Data:', formData);
+
+                            // Try to parse the response if possible
+                            try {
+                                var jsonResponse = JSON.parse(xhr.responseText);
+                                console.log('Parsed Response:', jsonResponse);
+                            } catch (e) {
+                                console.log('Could not parse response as JSON');
+                            }
+                        }
+                    });
+                }
+            });
+
             // Add new instance
             $('#ctp-add-instance').on('click', function () {
                 var instanceCount = $('.ctp-instance').length;
@@ -596,11 +844,18 @@ function ctp_render_settings_page()
                 <div class="ctp-instance card mb-4" id="ctp-instance-${newId}">
                     <div class="card-body">
                         <div class="d-flex justify-content-end mb-3">
+                            <form method="post" action="" class="needs-validation" novalidate>
+                                <?php wp_nonce_field('ctp_instance_nonce', 'ctp_instance_nonce'); ?>
+                                <input type="hidden" name="instance_id" value="${newId}">
+                                <button type="submit" name="ctp_save_instance" class="btn btn-sm btn-success me-2" id="save-instance-${newId}">
+                                    <i class="dashicons dashicons-saved" style="vertical-align: text-bottom;"></i>
+                                    <?php esc_html_e('Save Instance', 'configurable-text-plugin'); ?>
+                                </button>
+                            </form>
                             <form method="post" action="" class="d-inline">
                                 <?php wp_nonce_field('ctp_instance_nonce', 'ctp_instance_nonce'); ?>
                                 <input type="hidden" name="instance_id" value="${newId}">
-                                <button type="submit" name="ctp_delete_instance" class="btn btn-sm btn-outline-danger" 
-                                    onclick="return confirm('<?php echo esc_js(__('Are you sure you want to delete this instance?', 'configurable-text-plugin')); ?>')">
+                                <button type="submit" name="ctp_delete_instance" class="btn btn-sm btn-outline-danger">
                                     <?php esc_html_e('Delete Instance', 'configurable-text-plugin'); ?>
                                 </button>
                             </form>
@@ -619,6 +874,33 @@ function ctp_render_settings_page()
                                 <label for="ctp-instance-${newId}-text" class="form-label"><?php esc_html_e('Text to Display', 'configurable-text-plugin'); ?></label>
                                 <textarea id="ctp-instance-${newId}-text" class="form-control" name="ctp_instance[${newId}][text]" rows="3"><?php echo esc_html__('Default text', 'configurable-text-plugin'); ?></textarea>
                                 <div class="form-text"><?php esc_html_e('Enter the text you want to display with this shortcode.', 'configurable-text-plugin'); ?></div>
+                            </div>
+
+                            <div class="ctp-form-row mb-4">
+                                <div class="ctp-form-col">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               id="ctp-instance-${newId}-preserve-formatting" 
+                                               name="ctp_instance[${newId}][preserve_formatting]" 
+                                               value="1">
+                                        <label class="form-check-label" for="ctp-instance-${newId}-preserve-formatting">
+                                            <?php esc_html_e('Preserve Formatting', 'configurable-text-plugin'); ?>
+                                        </label>
+                                        <div class="form-text"><?php esc_html_e('Keep line breaks and spacing exactly as entered.', 'configurable-text-plugin'); ?></div>
+                                    </div>
+                                </div>
+                                <div class="ctp-form-col">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               id="ctp-instance-${newId}-render-html" 
+                                               name="ctp_instance[${newId}][render_html]" 
+                                               value="1">
+                                        <label class="form-check-label" for="ctp-instance-${newId}-render-html">
+                                            <?php esc_html_e('Render HTML Content', 'configurable-text-plugin'); ?>
+                                        </label>
+                                        <div class="form-text"><?php esc_html_e('Allow HTML tags in the text (use with caution).', 'configurable-text-plugin'); ?></div>
+                                    </div>
+                                </div>
                             </div>
 
                         <div class="ctp-form-row">
@@ -749,12 +1031,6 @@ function ctp_render_settings_page()
                             </div>
                         </div>
 
-                        <div class="mt-3">
-                            <button type="submit" name="ctp_save_instance" class="btn btn-success">
-                                <i class="dashicons dashicons-saved" style="vertical-align: text-bottom;"></i>
-                                <?php esc_html_e('Save Instance', 'configurable-text-plugin'); ?>
-                            </button>
-                        </div>
                         </form>
                     </div>
                 </div>
@@ -764,6 +1040,10 @@ function ctp_render_settings_page()
 
                 // Activate the new tab
                 $(`#tab-${newId}-tab`).tab('show');
+
+                // Initialize form change tracking for the new form
+                const newForm = $(`#ctp-instance-${newId}`).find('form.needs-validation');
+                setupFormChangeTracking(newForm);
             });
         });
     </script>
@@ -831,7 +1111,34 @@ function ctp_register_shortcodes()
 
                 $style_attr = !empty($style) ? ' style="' . $style . '"' : '';
 
-                return '<p class="' . esc_attr(implode(' ', $classes)) . '"' . $style_attr . '>' . wp_kses_post($instance['text']) . '</p>';
+                // Prepare the text content based on settings
+                $text_content = $instance['text'];
+
+                // Process text based on settings
+                if (isset($instance['render_html']) && $instance['render_html']) {
+                    // If HTML rendering is enabled, use wp_kses_post to allow safe HTML
+                    $text_content = wp_kses_post($text_content);
+
+                    // If both HTML rendering and formatting preservation are enabled,
+                    // we need to be careful not to double-process line breaks
+                    if (isset($instance['preserve_formatting']) && $instance['preserve_formatting']) {
+                        // For HTML content with preserved formatting, we need to ensure
+                        // that line breaks not already handled by HTML tags are converted
+                        $text_content = wpautop($text_content);
+                    }
+                } else {
+                    // If HTML rendering is disabled but formatting is preserved
+                    if (isset($instance['preserve_formatting']) && $instance['preserve_formatting']) {
+                        // Escape HTML first, then convert line breaks
+                        $text_content = esc_html($text_content);
+                        $text_content = nl2br($text_content);
+                    } else {
+                        // Just escape HTML, no formatting preservation
+                        $text_content = esc_html($text_content);
+                    }
+                }
+
+                return '<p class="' . esc_attr(implode(' ', $classes)) . '"' . $style_attr . '>' . $text_content . '</p>';
             });
         }
     }
@@ -844,3 +1151,128 @@ function ctp_init()
 }
 
 add_action('init', 'ctp_init');
+
+// Handle AJAX save instance
+function ctp_ajax_save_instance() {
+    // Log the request for debugging
+    error_log('AJAX save instance request received: ' . json_encode($_POST));
+
+    try {
+        // Check nonce
+        check_ajax_referer('ctp_instance_nonce', 'nonce');
+
+        $instances = get_option('ctp_instances', array());
+        $id = sanitize_text_field($_POST['instance_id']);
+        $success_message = '';
+
+        // Log the instance ID
+        error_log('Processing save for instance ID: ' . $id);
+
+        if (isset($_POST['ctp_instance']) && is_array($_POST['ctp_instance'])) {
+            $instance = $_POST['ctp_instance'][$id];
+
+            $shortcode_name = sanitize_title($instance['shortcode_name']);
+            if (empty($shortcode_name)) {
+                $shortcode_name = 'configurable_text_' . $id;
+            }
+
+            $instances[$id] = array(
+                'name' => sanitize_text_field($instance['name']),
+                'text' => isset($instance['render_html']) && $instance['render_html'] ? 
+                    wp_kses_post($instance['text']) : 
+                    (isset($instance['preserve_formatting']) && $instance['preserve_formatting'] ? 
+                        sanitize_textarea_field($instance['text']) : 
+                        sanitize_text_field($instance['text'])),
+                'shortcode_name' => $shortcode_name,
+                'rotation_speed' => intval($instance['rotation_speed']),
+                'rotation_axis' => sanitize_text_field($instance['rotation_axis']),
+                'text_align' => sanitize_text_field($instance['text_align']),
+                'font_family' => sanitize_text_field($instance['font_family']),
+                'font_size' => sanitize_text_field($instance['font_size']),
+                'font_weight' => sanitize_text_field($instance['font_weight']),
+                'font_style' => sanitize_text_field($instance['font_style']),
+                'text_color' => sanitize_text_field($instance['text_color']),
+                'line_height' => sanitize_text_field($instance['line_height']),
+                'preserve_formatting' => isset($instance['preserve_formatting']) ? 1 : 0,
+                'render_html' => isset($instance['render_html']) ? 1 : 0
+            );
+
+            update_option('ctp_instances', $instances);
+            $success_message = sprintf(esc_html__('Instance "%s" saved.', 'configurable-text-plugin'), $instance['name']);
+
+            // Re-register shortcodes
+            ctp_register_shortcodes();
+
+            error_log('Instance saved successfully: ' . $id . ' - ' . $instance['name']);
+
+            wp_send_json_success(array(
+                'message' => $success_message,
+                'instance_id' => $id,
+                'instance_name' => $instance['name']
+            ));
+        } else {
+            error_log('Error: ctp_instance not set or not an array');
+            wp_send_json_error(array(
+                'message' => esc_html__('Error saving instance: Missing instance data.', 'configurable-text-plugin')
+            ));
+        }
+    } catch (Exception $e) {
+        error_log('Exception in ctp_ajax_save_instance: ' . $e->getMessage());
+        wp_send_json_error(array(
+            'message' => esc_html__('Error saving instance: ', 'configurable-text-plugin') . $e->getMessage()
+        ));
+    }
+
+    wp_die();
+}
+
+add_action('wp_ajax_ctp_save_instance', 'ctp_ajax_save_instance');
+
+// Handle AJAX delete instance
+function ctp_ajax_delete_instance() {
+    // Log the request for debugging
+    error_log('AJAX delete instance request received: ' . json_encode($_POST));
+
+    try {
+        // Check nonce
+        check_ajax_referer('ctp_instance_nonce', 'nonce');
+
+        $instances = get_option('ctp_instances', array());
+        $id = sanitize_text_field($_POST['instance_id']);
+        $success_message = '';
+
+        // Log the instance ID
+        error_log('Processing delete for instance ID: ' . $id);
+
+        if (isset($instances[$id])) {
+            $instance_name = $instances[$id]['name'];
+            unset($instances[$id]);
+            update_option('ctp_instances', $instances);
+            $success_message = sprintf(esc_html__('Instance "%s" deleted.', 'configurable-text-plugin'), $instance_name);
+
+            // Re-register shortcodes
+            ctp_register_shortcodes();
+
+            error_log('Instance deleted successfully: ' . $id . ' - ' . $instance_name);
+
+            wp_send_json_success(array(
+                'message' => $success_message,
+                'deleted_id' => $id
+            ));
+        } else {
+            error_log('Error: Instance ID ' . $id . ' not found');
+            wp_send_json_error(array(
+                'message' => esc_html__('Error deleting instance: Instance not found.', 'configurable-text-plugin')
+            ));
+        }
+    } catch (Exception $e) {
+        error_log('Exception in ctp_ajax_delete_instance: ' . $e->getMessage());
+        wp_send_json_error(array(
+            'message' => esc_html__('Error deleting instance: ', 'configurable-text-plugin') . $e->getMessage()
+        ));
+    }
+
+    wp_die();
+}
+
+add_action('wp_ajax_ctp_delete_instance', 'ctp_ajax_delete_instance');
