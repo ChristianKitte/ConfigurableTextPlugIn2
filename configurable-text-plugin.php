@@ -173,13 +173,28 @@ function ctp_frontend_styles()
         $rotation_speed = isset($instance['rotation_speed']) ? intval($instance['rotation_speed']) : 0;
         if ($rotation_speed > 0) {
             $rotation_axis = isset($instance['rotation_axis']) ? $instance['rotation_axis'] : 'x';
+            $rotation_direction = isset($instance['rotation_direction']) ? $instance['rotation_direction'] : 'clockwise';
             $rotate_function = 'rotate' . strtoupper($rotation_axis);
 
-            echo '@keyframes ctp-rotate-' . esc_attr($id) . ' {
-                from { transform: ' . $rotate_function . '(0deg); }
-                to { transform: ' . $rotate_function . '(360deg); }
+            // Define keyframes for the specified direction
+            if ($rotation_direction === 'counterclockwise') {
+                echo '@keyframes ctp-rotate-' . esc_attr($id) . ' {
+                    0% { transform: ' . $rotate_function . '(360deg); }
+                    25% { transform: ' . $rotate_function . '(270deg); }
+                    50% { transform: ' . $rotate_function . '(180deg); }
+                    75% { transform: ' . $rotate_function . '(90deg); }
+                    100% { transform: ' . $rotate_function . '(0deg); }
+                }';
+            } else {
+                echo '@keyframes ctp-rotate-' . esc_attr($id) . ' {
+                    0% { transform: ' . $rotate_function . '(0deg); }
+                    25% { transform: ' . $rotate_function . '(90deg); }
+                    50% { transform: ' . $rotate_function . '(180deg); }
+                    75% { transform: ' . $rotate_function . '(270deg); }
+                    100% { transform: ' . $rotate_function . '(360deg); }
+                }';
             }
-            .ctp-text-' . esc_attr($id) . ' {
+            echo '.ctp-text-' . esc_attr($id) . ' {
                 animation: ctp-rotate-' . esc_attr($id) . ' ' . (60 / $rotation_speed) . 's linear infinite;
             }';
         }
@@ -217,6 +232,7 @@ function ctp_render_settings_page()
                 'shortcode_name' => $shortcode_name,
                 'rotation_speed' => intval($instance['rotation_speed']),
                 'rotation_axis' => sanitize_text_field($instance['rotation_axis']),
+                'rotation_direction' => isset($instance['rotation_direction']) ? sanitize_text_field($instance['rotation_direction']) : 'clockwise',
                 'text_align' => sanitize_text_field($instance['text_align']),
                 'font_family' => sanitize_text_field($instance['font_family']),
                 'font_size' => sanitize_text_field($instance['font_size']),
@@ -272,6 +288,7 @@ function ctp_render_settings_page()
                     'shortcode_name' => $shortcode_name,
                     'rotation_speed' => intval($instance['rotation_speed']),
                     'rotation_axis' => sanitize_text_field($instance['rotation_axis']),
+                    'rotation_direction' => isset($instance['rotation_direction']) ? sanitize_text_field($instance['rotation_direction']) : 'clockwise',
                     'text_align' => sanitize_text_field($instance['text_align']),
                     'font_family' => sanitize_text_field($instance['font_family']),
                     'font_size' => sanitize_text_field($instance['font_size']),
@@ -309,6 +326,7 @@ function ctp_render_settings_page()
                 'shortcode_name' => 'configurable_text',
                 'rotation_speed' => 0,
                 'rotation_axis' => 'x',
+                'rotation_direction' => 'clockwise',
                 'text_align' => 'left',
                 'font_family' => 'Arial, sans-serif',
                 'font_size' => '16px',
@@ -490,6 +508,16 @@ function ctp_render_settings_page()
                                             <option value="z" <?php selected(isset($instance['rotation_axis']) ? $instance['rotation_axis'] : 'x', 'z'); ?>><?php esc_html_e('Z-Axis', 'configurable-text-plugin'); ?></option>
                                         </select>
                                         <div class="form-text"><?php esc_html_e('Choose the axis around which the text will rotate.', 'configurable-text-plugin'); ?></div>
+                                    </div>
+                                    <div class="ctp-field mb-3">
+                                        <label for="ctp-instance-<?php echo esc_attr($id); ?>-rotation-direction" class="form-label"><?php esc_html_e('Rotation Direction', 'configurable-text-plugin'); ?></label>
+                                        <select id="ctp-instance-<?php echo esc_attr($id); ?>-rotation-direction"
+                                               class="form-select"
+                                               name="ctp_instance[<?php echo esc_attr($id); ?>][rotation_direction]">
+                                            <option value="clockwise" <?php selected(isset($instance['rotation_direction']) ? $instance['rotation_direction'] : 'clockwise', 'clockwise'); ?>><?php esc_html_e('Clockwise', 'configurable-text-plugin'); ?></option>
+                                            <option value="counterclockwise" <?php selected(isset($instance['rotation_direction']) ? $instance['rotation_direction'] : 'clockwise', 'counterclockwise'); ?>><?php esc_html_e('Counterclockwise', 'configurable-text-plugin'); ?></option>
+                                        </select>
+                                        <div class="form-text"><?php esc_html_e('Choose the direction of rotation.', 'configurable-text-plugin'); ?></div>
                                     </div>
                                 </div>
                             </div>
@@ -946,6 +974,14 @@ function ctp_render_settings_page()
                                     </select>
                                     <div class="form-text"><?php esc_html_e('Choose the axis around which the text will rotate.', 'configurable-text-plugin'); ?></div>
                                 </div>
+                                <div class="ctp-field mb-3">
+                                    <label for="ctp-instance-${newId}-rotation-direction" class="form-label"><?php esc_html_e('Rotation Direction', 'configurable-text-plugin'); ?></label>
+                                    <select id="ctp-instance-${newId}-rotation-direction" class="form-select" name="ctp_instance[${newId}][rotation_direction]">
+                                        <option value="clockwise" selected><?php esc_html_e('Clockwise', 'configurable-text-plugin'); ?></option>
+                                        <option value="counterclockwise"><?php esc_html_e('Counterclockwise', 'configurable-text-plugin'); ?></option>
+                                    </select>
+                                    <div class="form-text"><?php esc_html_e('Choose the direction of rotation.', 'configurable-text-plugin'); ?></div>
+                                </div>
                             </div>
                         </div>
 
@@ -1186,6 +1222,7 @@ function ctp_ajax_save_instance() {
                 'shortcode_name' => $shortcode_name,
                 'rotation_speed' => intval($instance['rotation_speed']),
                 'rotation_axis' => sanitize_text_field($instance['rotation_axis']),
+                'rotation_direction' => isset($instance['rotation_direction']) ? sanitize_text_field($instance['rotation_direction']) : 'clockwise',
                 'text_align' => sanitize_text_field($instance['text_align']),
                 'font_family' => sanitize_text_field($instance['font_family']),
                 'font_size' => sanitize_text_field($instance['font_size']),
