@@ -54,11 +54,15 @@ function ctp_admin_styles()
             }
 
             .wrap {
-                max-width: 1200px;
+                width: 100%;
             }
 
             .ctp-instance {
                 margin-bottom: 20px;
+            }
+
+            .card {
+                max-width: 100%;
             }
 
             .ctp-instance .card-header {
@@ -308,28 +312,61 @@ function ctp_render_settings_page()
     <div class="wrap">
         <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
 
-        <div id="ctp-instances">
+        <div class="ctp-add-new my-4">
+            <button type="button" class="btn btn-primary"
+                    id="ctp-add-instance">
+                <i class="dashicons dashicons-plus-alt" style="vertical-align: text-bottom;"></i>
+                <?php esc_html_e('Add New Text Instance', 'configurable-text-plugin'); ?>
+            </button>
+            <div class="form-text mt-2">
+                <?php esc_html_e('After adding a new instance, remember to save it using the "Save Instance" button.', 'configurable-text-plugin'); ?>
+            </div>
+        </div>
+
+        <!-- Tab navigation -->
+        <ul class="nav nav-tabs mb-3" id="ctp-instance-tabs" role="tablist">
+            <?php $first_tab = true; ?>
             <?php foreach ($instances as $id => $instance) : ?>
-                <div class="ctp-instance card mb-4" id="ctp-instance-<?php echo esc_attr($id); ?>">
-                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                        <h3 class="mb-0">
-                            <?php 
-                            $instance_name = isset($instance['name']) && !empty($instance['name']) ? $instance['name'] : sprintf(esc_html__('Text Instance #%s', 'configurable-text-plugin'), esc_html($id));
-                            echo esc_html($instance_name); 
-                            ?>
-                        </h3>
-                        <div class="ctp-instance-actions">
-                            <form method="post" action="" class="d-inline">
-                                <?php wp_nonce_field('ctp_instance_nonce', 'ctp_instance_nonce'); ?>
-                                <input type="hidden" name="instance_id" value="<?php echo esc_attr($id); ?>">
-                                <button type="submit" name="ctp_delete_instance" class="btn btn-sm btn-outline-danger" 
-                                    onclick="return confirm('<?php echo esc_js(__('Are you sure you want to delete this instance?', 'configurable-text-plugin')); ?>')">
-                                    <?php esc_html_e('Delete', 'configurable-text-plugin'); ?>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="card-body">
+                <?php 
+                $instance_name = isset($instance['name']) && !empty($instance['name']) ? $instance['name'] : sprintf(esc_html__('Text Instance #%s', 'configurable-text-plugin'), esc_html($id));
+                ?>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link <?php echo $first_tab ? 'active' : ''; ?>" 
+                            id="tab-<?php echo esc_attr($id); ?>-tab" 
+                            data-bs-toggle="tab" 
+                            data-bs-target="#tab-<?php echo esc_attr($id); ?>" 
+                            type="button" 
+                            role="tab" 
+                            aria-controls="tab-<?php echo esc_attr($id); ?>" 
+                            aria-selected="<?php echo $first_tab ? 'true' : 'false'; ?>">
+                        <?php echo esc_html($instance_name); ?>
+                    </button>
+                </li>
+                <?php $first_tab = false; ?>
+            <?php endforeach; ?>
+        </ul>
+
+        <!-- Tab content -->
+        <div class="tab-content" id="ctp-instances">
+            <?php $first_tab = true; ?>
+            <?php foreach ($instances as $id => $instance) : ?>
+                <div class="tab-pane fade <?php echo $first_tab ? 'show active' : ''; ?>" 
+                     id="tab-<?php echo esc_attr($id); ?>" 
+                     role="tabpanel" 
+                     aria-labelledby="tab-<?php echo esc_attr($id); ?>-tab">
+
+                    <div class="ctp-instance card mb-4" id="ctp-instance-<?php echo esc_attr($id); ?>">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-end mb-3">
+                                <form method="post" action="" class="d-inline">
+                                    <?php wp_nonce_field('ctp_instance_nonce', 'ctp_instance_nonce'); ?>
+                                    <input type="hidden" name="instance_id" value="<?php echo esc_attr($id); ?>">
+                                    <button type="submit" name="ctp_delete_instance" class="btn btn-sm btn-outline-danger" 
+                                        onclick="return confirm('<?php echo esc_js(__('Are you sure you want to delete this instance?', 'configurable-text-plugin')); ?>')">
+                                        <?php esc_html_e('Delete Instance', 'configurable-text-plugin'); ?>
+                                    </button>
+                                </form>
+                            </div>
                         <form method="post" action="" class="needs-validation" novalidate>
                             <?php wp_nonce_field('ctp_instance_nonce', 'ctp_instance_nonce'); ?>
                             <input type="hidden" name="instance_id" value="<?php echo esc_attr($id); ?>">
@@ -514,18 +551,9 @@ function ctp_render_settings_page()
                         </form>
                     </div>
                 </div>
-                <?php endforeach; ?>
-            </div>
-
-            <div class="ctp-add-new my-4">
-                <button type="button" class="btn btn-primary"
-                        id="ctp-add-instance">
-                    <i class="dashicons dashicons-plus-alt" style="vertical-align: text-bottom;"></i>
-                    <?php esc_html_e('Add New Text Instance', 'configurable-text-plugin'); ?>
-                </button>
-                <div class="form-text mt-2">
-                    <?php esc_html_e('After adding a new instance, remember to save it using the "Save Instance" button.', 'configurable-text-plugin'); ?>
                 </div>
+                <?php $first_tab = false; ?>
+                <?php endforeach; ?>
             </div>
     </div>
 
@@ -541,24 +569,42 @@ function ctp_render_settings_page()
                     newId++;
                 }
 
+                // Create new tab
+                var tabTemplate = `
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" 
+                            id="tab-${newId}-tab" 
+                            data-bs-toggle="tab" 
+                            data-bs-target="#tab-${newId}" 
+                            type="button" 
+                            role="tab" 
+                            aria-controls="tab-${newId}" 
+                            aria-selected="false">
+                        <?php echo esc_html__('Instance', 'configurable-text-plugin'); ?> ${newId}
+                    </button>
+                </li>
+                `;
+
+                $('#ctp-instance-tabs').append(tabTemplate);
+
+                // Create tab content
                 var template = `
+                <div class="tab-pane fade" 
+                     id="tab-${newId}" 
+                     role="tabpanel" 
+                     aria-labelledby="tab-${newId}-tab">
                 <div class="ctp-instance card mb-4" id="ctp-instance-${newId}">
-                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                        <h3 class="mb-0">
-                            <?php echo esc_html__('Instance', 'configurable-text-plugin'); ?> ${newId}
-                        </h3>
-                        <div class="ctp-instance-actions">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-end mb-3">
                             <form method="post" action="" class="d-inline">
                                 <?php wp_nonce_field('ctp_instance_nonce', 'ctp_instance_nonce'); ?>
                                 <input type="hidden" name="instance_id" value="${newId}">
                                 <button type="submit" name="ctp_delete_instance" class="btn btn-sm btn-outline-danger" 
                                     onclick="return confirm('<?php echo esc_js(__('Are you sure you want to delete this instance?', 'configurable-text-plugin')); ?>')">
-                                    <?php esc_html_e('Delete', 'configurable-text-plugin'); ?>
+                                    <?php esc_html_e('Delete Instance', 'configurable-text-plugin'); ?>
                                 </button>
                             </form>
                         </div>
-                    </div>
-                    <div class="card-body">
                         <form method="post" action="" class="needs-validation" novalidate>
                             <?php wp_nonce_field('ctp_instance_nonce', 'ctp_instance_nonce'); ?>
                             <input type="hidden" name="instance_id" value="${newId}">
@@ -715,6 +761,9 @@ function ctp_render_settings_page()
             `;
 
                 $('#ctp-instances').append(template);
+
+                // Activate the new tab
+                $(`#tab-${newId}-tab`).tab('show');
             });
         });
     </script>
