@@ -188,7 +188,59 @@ add_action('wp_head', 'ctp_frontend_styles');
 // Render the settings page
 function ctp_render_settings_page()
 {
-    // Handle form submission
+    $instances = get_option('ctp_instances', array());
+    $success_message = '';
+
+    // Handle save single instance
+    if (isset($_POST['ctp_save_instance']) && check_admin_referer('ctp_instance_nonce', 'ctp_instance_nonce')) {
+        $id = sanitize_text_field($_POST['instance_id']);
+
+        if (isset($_POST['ctp_instance']) && is_array($_POST['ctp_instance'])) {
+            $instance = $_POST['ctp_instance'][$id];
+
+            $shortcode_name = sanitize_title($instance['shortcode_name']);
+            if (empty($shortcode_name)) {
+                $shortcode_name = 'configurable_text_' . $id;
+            }
+
+            $instances[$id] = array(
+                'name' => sanitize_text_field($instance['name']),
+                'text' => wp_kses_post($instance['text']),
+                'shortcode_name' => $shortcode_name,
+                'rotation_speed' => intval($instance['rotation_speed']),
+                'rotation_axis' => sanitize_text_field($instance['rotation_axis']),
+                'text_align' => sanitize_text_field($instance['text_align']),
+                'font_family' => sanitize_text_field($instance['font_family']),
+                'font_size' => sanitize_text_field($instance['font_size']),
+                'font_weight' => sanitize_text_field($instance['font_weight']),
+                'font_style' => sanitize_text_field($instance['font_style']),
+                'text_color' => sanitize_text_field($instance['text_color']),
+                'line_height' => sanitize_text_field($instance['line_height'])
+            );
+
+            update_option('ctp_instances', $instances);
+            $success_message = sprintf(esc_html__('Instance #%s saved.', 'configurable-text-plugin'), $id);
+
+            // Re-register shortcodes
+            ctp_register_shortcodes();
+        }
+    }
+
+    // Handle delete single instance
+    if (isset($_POST['ctp_delete_instance']) && check_admin_referer('ctp_instance_nonce', 'ctp_instance_nonce')) {
+        $id = sanitize_text_field($_POST['instance_id']);
+
+        if (isset($instances[$id])) {
+            unset($instances[$id]);
+            update_option('ctp_instances', $instances);
+            $success_message = sprintf(esc_html__('Instance #%s deleted.', 'configurable-text-plugin'), $id);
+
+            // Re-register shortcodes
+            ctp_register_shortcodes();
+        }
+    }
+
+    // Handle save all instances (legacy support)
     if (isset($_POST['ctp_save_instances']) && check_admin_referer('ctp_save_instances_nonce', 'ctp_nonce')) {
         $instances = array();
 
@@ -200,6 +252,7 @@ function ctp_render_settings_page()
                 }
 
                 $instances[$id] = array(
+                    'name' => sanitize_text_field($instance['name']),
                     'text' => wp_kses_post($instance['text']),
                     'shortcode_name' => $shortcode_name,
                     'rotation_speed' => intval($instance['rotation_speed']),
@@ -216,10 +269,15 @@ function ctp_render_settings_page()
         }
 
         update_option('ctp_instances', $instances);
-        echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Settings saved.', 'configurable-text-plugin') . '</p></div>';
+        $success_message = esc_html__('All settings saved.', 'configurable-text-plugin');
 
         // Re-register shortcodes
         ctp_register_shortcodes();
+    }
+
+    // Display success message if any
+    if (!empty($success_message)) {
+        echo '<div class="notice notice-success is-dismissible"><p>' . $success_message . '</p></div>';
     }
 
     $instances = get_option('ctp_instances', array());
@@ -229,6 +287,7 @@ function ctp_render_settings_page()
         $default_text = get_option('ctp_text_option', __('Default text', 'configurable-text-plugin'));
         $instances = array(
             '1' => array(
+                'name' => __('Default Instance', 'configurable-text-plugin'),
                 'text' => $default_text,
                 'shortcode_name' => 'configurable_text',
                 'rotation_speed' => 0,
@@ -248,22 +307,42 @@ function ctp_render_settings_page()
     ?>
     <div class="wrap">
         <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
-        <form method="post" action="" class="needs-validation" novalidate>
-            <?php wp_nonce_field('ctp_save_instances_nonce', 'ctp_nonce'); ?>
 
-            <div id="ctp-instances">
-                <?php foreach ($instances as $id => $instance) : ?>
-                    <div class="ctp-instance card" id="ctp-instance-<?php echo esc_attr($id); ?>">
-                        <div class="card-header bg-light">
-                            <h3>
-                                <?php echo sprintf(esc_html__('Text Instance #%s', 'configurable-text-plugin'), esc_html($id)); ?>
-                            </h3>
-                            <?php if (count($instances) > 1) : ?>
-                                <a href="#" class="ctp-remove-instance btn btn-sm btn-outline-danger"
-                                   data-id="<?php echo esc_attr($id); ?>"><?php esc_html_e('Remove', 'configurable-text-plugin'); ?></a>
-                            <?php endif; ?>
+        <div id="ctp-instances">
+            <?php foreach ($instances as $id => $instance) : ?>
+                <div class="ctp-instance card mb-4" id="ctp-instance-<?php echo esc_attr($id); ?>">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">
+                            <?php 
+                            $instance_name = isset($instance['name']) && !empty($instance['name']) ? $instance['name'] : sprintf(esc_html__('Text Instance #%s', 'configurable-text-plugin'), esc_html($id));
+                            echo esc_html($instance_name); 
+                            ?>
+                        </h3>
+                        <div class="ctp-instance-actions">
+                            <form method="post" action="" class="d-inline">
+                                <?php wp_nonce_field('ctp_instance_nonce', 'ctp_instance_nonce'); ?>
+                                <input type="hidden" name="instance_id" value="<?php echo esc_attr($id); ?>">
+                                <button type="submit" name="ctp_delete_instance" class="btn btn-sm btn-outline-danger" 
+                                    onclick="return confirm('<?php echo esc_js(__('Are you sure you want to delete this instance?', 'configurable-text-plugin')); ?>')">
+                                    <?php esc_html_e('Delete', 'configurable-text-plugin'); ?>
+                                </button>
+                            </form>
                         </div>
-                        <div class="card-body">
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="" class="needs-validation" novalidate>
+                            <?php wp_nonce_field('ctp_instance_nonce', 'ctp_instance_nonce'); ?>
+                            <input type="hidden" name="instance_id" value="<?php echo esc_attr($id); ?>">
+
+                            <div class="ctp-field mb-3">
+                                <label for="ctp-instance-<?php echo esc_attr($id); ?>-name" class="form-label"><?php esc_html_e('Instance Name', 'configurable-text-plugin'); ?></label>
+                                <input type="text" id="ctp-instance-<?php echo esc_attr($id); ?>-name"
+                                       class="form-control"
+                                       name="ctp_instance[<?php echo esc_attr($id); ?>][name]"
+                                       value="<?php echo esc_attr(isset($instance['name']) ? $instance['name'] : sprintf(__('Instance %s', 'configurable-text-plugin'), $id)); ?>" />
+                                <div class="form-text"><?php esc_html_e('Enter a name to identify this instance in the backend.', 'configurable-text-plugin'); ?></div>
+                            </div>
+
                             <div class="ctp-field mb-4">
                                 <label for="ctp-instance-<?php echo esc_attr($id); ?>-text" class="form-label"><?php esc_html_e('Text to Display', 'configurable-text-plugin'); ?></label>
                                 <textarea id="ctp-instance-<?php echo esc_attr($id); ?>-text"
@@ -425,24 +504,29 @@ function ctp_render_settings_page()
                                     </div>
                                 </div>
                             </div>
+
+                            <div class="mt-3">
+                                <button type="submit" name="ctp_save_instance" class="btn btn-success">
+                                    <i class="dashicons dashicons-saved" style="vertical-align: text-bottom;"></i>
+                                    <?php esc_html_e('Save Instance', 'configurable-text-plugin'); ?>
+                                </button>
+                            </div>
+                        </form>
                     </div>
+                </div>
                 <?php endforeach; ?>
             </div>
 
-            <div class="ctp-add-new d-flex justify-content-between align-items-center my-4">
+            <div class="ctp-add-new my-4">
                 <button type="button" class="btn btn-primary"
                         id="ctp-add-instance">
                     <i class="dashicons dashicons-plus-alt" style="vertical-align: text-bottom;"></i>
                     <?php esc_html_e('Add New Text Instance', 'configurable-text-plugin'); ?>
                 </button>
-
-                <input type="hidden" name="ctp_save_instances" value="1"/>
-                <button type="submit" class="btn btn-success">
-                    <i class="dashicons dashicons-saved" style="vertical-align: text-bottom;"></i>
-                    <?php esc_html_e('Save All Instances', 'configurable-text-plugin'); ?>
-                </button>
+                <div class="form-text mt-2">
+                    <?php esc_html_e('After adding a new instance, remember to save it using the "Save Instance" button.', 'configurable-text-plugin'); ?>
+                </div>
             </div>
-        </form>
     </div>
 
     <script>
@@ -458,19 +542,38 @@ function ctp_render_settings_page()
                 }
 
                 var template = `
-                <div class="ctp-instance card" id="ctp-instance-${newId}">
-                    <div class="card-header bg-light">
-                        <h3>
-                            <?php echo esc_html__('Text Instance #', 'configurable-text-plugin'); ?>${newId}
+                <div class="ctp-instance card mb-4" id="ctp-instance-${newId}">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0">
+                            <?php echo esc_html__('Instance', 'configurable-text-plugin'); ?> ${newId}
                         </h3>
-                        <a href="#" class="ctp-remove-instance btn btn-sm btn-outline-danger" data-id="${newId}"><?php esc_html_e('Remove', 'configurable-text-plugin'); ?></a>
+                        <div class="ctp-instance-actions">
+                            <form method="post" action="" class="d-inline">
+                                <?php wp_nonce_field('ctp_instance_nonce', 'ctp_instance_nonce'); ?>
+                                <input type="hidden" name="instance_id" value="${newId}">
+                                <button type="submit" name="ctp_delete_instance" class="btn btn-sm btn-outline-danger" 
+                                    onclick="return confirm('<?php echo esc_js(__('Are you sure you want to delete this instance?', 'configurable-text-plugin')); ?>')">
+                                    <?php esc_html_e('Delete', 'configurable-text-plugin'); ?>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="ctp-field mb-4">
-                            <label for="ctp-instance-${newId}-text" class="form-label"><?php esc_html_e('Text to Display', 'configurable-text-plugin'); ?></label>
-                            <textarea id="ctp-instance-${newId}-text" class="form-control" name="ctp_instance[${newId}][text]" rows="3"><?php echo esc_html__('Default text', 'configurable-text-plugin'); ?></textarea>
-                            <div class="form-text"><?php esc_html_e('Enter the text you want to display with this shortcode.', 'configurable-text-plugin'); ?></div>
-                        </div>
+                        <form method="post" action="" class="needs-validation" novalidate>
+                            <?php wp_nonce_field('ctp_instance_nonce', 'ctp_instance_nonce'); ?>
+                            <input type="hidden" name="instance_id" value="${newId}">
+
+                            <div class="ctp-field mb-3">
+                                <label for="ctp-instance-${newId}-name" class="form-label"><?php esc_html_e('Instance Name', 'configurable-text-plugin'); ?></label>
+                                <input type="text" id="ctp-instance-${newId}-name" class="form-control" name="ctp_instance[${newId}][name]" value="<?php echo esc_html__('Instance', 'configurable-text-plugin'); ?> ${newId}" />
+                                <div class="form-text"><?php esc_html_e('Enter a name to identify this instance in the backend.', 'configurable-text-plugin'); ?></div>
+                            </div>
+
+                            <div class="ctp-field mb-4">
+                                <label for="ctp-instance-${newId}-text" class="form-label"><?php esc_html_e('Text to Display', 'configurable-text-plugin'); ?></label>
+                                <textarea id="ctp-instance-${newId}-text" class="form-control" name="ctp_instance[${newId}][text]" rows="3"><?php echo esc_html__('Default text', 'configurable-text-plugin'); ?></textarea>
+                                <div class="form-text"><?php esc_html_e('Enter the text you want to display with this shortcode.', 'configurable-text-plugin'); ?></div>
+                            </div>
 
                         <div class="ctp-form-row">
                             <div class="ctp-form-col">
@@ -599,19 +702,19 @@ function ctp_render_settings_page()
                                 </div>
                             </div>
                         </div>
+
+                        <div class="mt-3">
+                            <button type="submit" name="ctp_save_instance" class="btn btn-success">
+                                <i class="dashicons dashicons-saved" style="vertical-align: text-bottom;"></i>
+                                <?php esc_html_e('Save Instance', 'configurable-text-plugin'); ?>
+                            </button>
+                        </div>
+                        </form>
                     </div>
                 </div>
             `;
 
                 $('#ctp-instances').append(template);
-            });
-
-            // Remove instance
-            $(document).on('click', '.ctp-remove-instance', function (e) {
-                e.preventDefault();
-                if (confirm('<?php echo esc_js(__('Are you sure you want to remove this text instance?', 'configurable-text-plugin')); ?>')) {
-                    $(this).closest('.ctp-instance').remove();
-                }
             });
         });
     </script>
