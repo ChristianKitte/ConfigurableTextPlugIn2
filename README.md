@@ -1,3 +1,5 @@
+![cropped-BewerbungHeader1](https://github.com/user-attachments/assets/de3a724b-4002-4e2b-80a4-e9d588bf1930)
+
 # Flexibles Text-Plugin – Anpassbare Textausgabe mit Stil
 
 ## Einführung
