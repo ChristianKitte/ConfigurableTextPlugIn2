@@ -110,4 +110,12 @@ Jede Textinstanz kann individuell über die folgenden Felder im WordPress-Adminb
 
 ## Lizenz
 
-Dieses Plugin steht unter der **GPL2** Lizenz. Details finden Sie in der Datei `license.txt` (nicht im Code enthalten, aber typisch für GPL2) oder unter [GNU General Public License v2.0](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html).
+Hiermit wird das Recht gewährt, diese Software für ausschließlich private und nicht-kommerzielle Zwecke kostenlos zu nutzen, zu kopieren und zu installieren.
+
+Jede Form der kommerziellen Nutzung, sei es direkt oder indirekt, sowie die Nutzung in einem geschäftlichen, beruflichen oder gewerblichen Kontext, ist ohne eine 
+vorherige schriftliche Lizenzvereinbarung ausdrücklich untersagt.
+
+DIE SOFTWARE WIRD OHNE MÄNGELGEWÄHR UND OHNE JEGLICHE AUSDRÜCKLICHE ODER STILLSCHWEIGENDE GEWÄHRLEISTUNG, EINSCHLIESSLICH, ABER NICHT BESCHRÄNKT AUF DIE GEWÄHRLEISTUNG 
+DER MARKTGÄNGIGKEIT, DER EIGNUNG FÜR EINEN BESTIMMTEN ZWECK UND DER NICHTVERLETZUNG VON RECHTEN DRITTER, ZUR VERFÜGUNG GESTELLT. IN KEINEM FALL SIND DIE AUTOREN ODER 
+URHEBERRECHTSINHABER FÜR ANSPRÜCHE, SCHÄDEN ODER ANDERE VERPFLICHTUNGEN HAFTBAR, SEI ES AUS VERTRAG, UNERLAUBTER HANDLUNG ODER ANDERWEITIG, DIE SICH AUS ODER IN VERBINDUNG 
+MIT DER SOFTWARE ODER DER NUTZUNG ODER ANDEREN GESCHÄFTEN MIT DER SOFTWARE ERGEBEN.
