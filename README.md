@@ -1,111 +1,111 @@
-# Configurable Text Plugin
+# Flexibles Text-Plugin – Anpassbare Textausgabe mit Stil
 
-A WordPress plugin that allows you to display configurable text on your website using customizable shortcodes with rotation effects.
+## Einführung
 
-## Description
+**Flexibles Text-Plugin** ist ein WordPress-Plugin, das es Ihnen ermöglicht, konfigurierbare Textblöcke über anpassbare Shortcodes auf Ihrer Webseite auszugeben. Das Plugin bietet detaillierte Anpassungsmöglichkeiten für Schriftarten, Textausrichtung und sogar 3D-Rotationseffekte (X-, Y-, Z-Achse). Die Verwaltung erfolgt über eine moderne, auf Bootstrap basierende Benutzeroberfläche im WordPress-Adminbereich. Es ist ideal für Benutzer, die dynamische und stilistisch angepasste Textelemente einfach und ohne Programmieraufwand erstellen möchten.
 
-The Configurable Text Plugin provides an easy way to add and manage multiple text instances that can be displayed anywhere on your WordPress site using customizable shortcodes. Each text instance can have its own settings, including custom shortcode name, detailed font customization options, text alignment, and Z-axis rotation effect with configurable speed.
+## Funktionen
 
-## Features
-
-- Support for multiple text instances
-- Customizable shortcode names for each text instance
-- Text alignment options (left, center, right)
-- Detailed font customization (family, size, weight, style, color, line height)
-- 3D rotation effect with configurable axis (X, Y, or Z) and speed (rotations per minute)
-- Clean, user-friendly settings interface
-- Easy to add, edit, and remove text instances
-- Multilingual support (currently includes German translations)
+* **Mehrere Textinstanzen:** Erstellen Sie beliebig viele unabhängige Textkonfigurationen.
+* **Anpassbare Shortcodes:** Jede Textinstanz generiert einen eigenen Shortcode, dessen Name Sie anpassen können.
+* **Detaillierte Schriftanpassung:**
+   * Schriftfamilie
+   * Schriftgröße (mit Einheit, z.B. `px`, `em`, `%`)
+   * Schriftgewicht
+   * Schriftstil (normal, kursiv, etc.)
+   * Textfarbe
+   * Zeilenhöhe
+* **Textausrichtung:** Links, zentriert oder rechts.
+* **3D-Rotationseffekte:**
+   * Rotationsgeschwindigkeit (Umdrehungen pro Minute)
+   * Rotationsachse (X, Y, Z)
+   * Rotationsrichtung (im oder gegen den Uhrzeigersinn)
+* **Inhaltsoptionen:**
+   * Formatierung beibehalten (Zeilenumbrüche, Leerzeichen)
+   * HTML-Inhalt rendern (mit Vorsicht verwenden)
+* **Moderne Admin-Oberfläche:**
+   * Bootstrap 5 basiertes Design.
+   * Tab-Navigation zur einfachen Verwaltung mehrerer Instanzen.
+   * AJAX-gestütztes Speichern und Löschen für eine flüssige Bedienung.
+   * Visuelles Feedback bei ungespeicherten Änderungen.
+* **Internationalisierung:** Bereit für Übersetzungen (`.pot`-Datei enthalten).
 
 ## Installation
 
-1. Upload the `configurable-text-plugin` directory to the `/wp-content/plugins/` directory
-2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Go to Settings > Configurable Text to configure your text instances
+1.  Laden Sie den Plugin-Ordner `configurable-text-plugin` in das Verzeichnis `/wp-content/plugins/` hoch.
+    *Oder:*
+2.  Navigieren Sie im WordPress-Adminbereich zu `Plugins` > `Installieren`.
+3.  Klicken Sie auf `Plugin hochladen`, wählen Sie die ZIP-Datei des Plugins aus und klicken Sie auf `Jetzt installieren`.
+4.  Aktivieren Sie das Plugin über das Menü `Plugins` in WordPress.
 
-## Usage
+## Bedienung
 
-### Admin Configuration
+### 1. Zugriff auf die Einstellungsseite
 
-1. Navigate to Settings > Configurable Text in your WordPress admin
-2. For each text instance, you can configure:
-   - The text content to display
-   - A custom shortcode name
-   - Text alignment (left, center, or right)
-   - Font settings (family, size, weight, style, color, line height)
-   - Rotation settings (axis: X, Y, or Z and speed in rotations per minute)
-3. Add new instances with the "Add New Text Instance" button
-4. Remove instances with the "Remove" link (if you have more than one)
-5. Click "Save All Instances" to save your changes
+Nach der Aktivierung finden Sie die Einstellungsseite des Plugins unter:
+`Einstellungen` > `Configurable Text` im WordPress-Adminbereich.
 
-The plugin features a modern, responsive Bootstrap-based interface for easy configuration and management of multiple text instances.
+### 2. Instanzen verwalten
 
-### Displaying the Text
+Auf der Einstellungsseite können Sie verschiedene Textinstanzen erstellen und konfigurieren. Jede Instanz repräsentiert einen einzigartigen Textblock mit eigenen Einstellungen und einem eigenen Shortcode.
 
-Use the shortcode corresponding to each text instance to display it on any page or post:
+* **Neue Instanz hinzufügen:**
+   * Klicken Sie auf den Button `Add New Text Instance`.
+   * Es wird ein neuer Tab für die neue Instanz erstellt.
+   * Konfigurieren Sie die Instanz wie unten beschrieben.
+   * Klicken Sie auf `Save Instance` innerhalb des Tabs der Instanz, um die Einstellungen zu speichern.
+* **Instanz konfigurieren:**
+   * Wählen Sie den Tab der gewünschten Instanz aus.
+   * Passen Sie die Einstellungen im Formular an (siehe Abschnitt "Konfiguration einer Textinstanz" für Details).
+   * Der `Save Instance`-Button wird gelb hervorgehoben, sobald Änderungen vorgenommen wurden.
+* **Instanz speichern:**
+   * Klicken Sie auf den `Save Instance`-Button innerhalb des jeweiligen Instanz-Tabs. Eine Erfolgsmeldung wird angezeigt.
+* **Instanz löschen:**
+   * Klicken Sie auf den `Delete Instance`-Button innerhalb des jeweiligen Instanz-Tabs.
+   * Bestätigen Sie die Löschananfrage.
 
-```
-[your_custom_shortcode_name]
-```
+### 3. Shortcodes verwenden
 
-For example, if you set the shortcode name to "rotating_text", you would use:
+Nachdem Sie eine Instanz gespeichert haben, wird Ihnen der zugehörige Shortcode im Einstellungsformular angezeigt (z.B. `[configurable_text_1]`).
 
-```
-[rotating_text]
-```
+* Kopieren Sie diesen Shortcode.
+* Fügen Sie ihn in den Inhalt einer Seite, eines Beitrags oder eines Widgets ein, wo der konfigurierte Text angezeigt werden soll.
 
-The default shortcode for the first instance is `[configurable_text]`.
+## Konfiguration einer Textinstanz
 
-## Text Alignment
+Jede Textinstanz kann individuell über die folgenden Felder im WordPress-Adminbereich (`Einstellungen > Configurable Text > [Ihr Instanz-Tab]`) angepasst werden:
 
-To control the alignment of your text:
+| Feld                        | Beschreibung                                                                                                |
+| :-------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| **Allgemein** |                                                                                                             |
+| `Instance Name`             | Ein Name zur Identifizierung dieser Instanz im Backend (z.B. "Willkommensgruß Startseite").                 |
+| `Text to Display`           | Der eigentliche Text, der durch den Shortcode angezeigt werden soll.                                        |
+| `Preserve Formatting`       | (Checkbox) Wenn aktiviert, bleiben Zeilenumbrüche und mehrfache Leerzeichen aus dem Textfeld erhalten.      |
+| `Render HTML Content`       | (Checkbox) Wenn aktiviert, wird der eingegebene Text als HTML interpretiert. Mit Vorsicht verwenden!        |
+| **Shortcode & Ausrichtung** |                                                                                                             |
+| `Shortcode Name`            | Der Name des Shortcodes (z.B. `mein_spezial_text`). Standardmäßig `configurable_text_X`. Nur Buchstaben, Zahlen und Unterstriche. |
+| `Text Alignment`            | Ausrichtung des Textes: `Left`, `Center`, `Right`.                                                          |
+| **3D-Rotationseffekte** |                                                                                                             |
+| `Rotation Speed (RPM)`      | Geschwindigkeit der 3D-Rotation in Umdrehungen pro Minute. `0` deaktiviert die Rotation.                    |
+| `Rotation Axis`             | Die Achse, um die der Text rotiert: `X-Axis`, `Y-Axis`, `Z-Axis`.                                           |
+| `Rotation Direction`        | Richtung der Rotation: `Clockwise` (im Uhrzeigersinn), `Counterclockwise` (gegen den Uhrzeigersinn).          |
+| **Schriftarteinstellungen** |                                                                                                             |
+| `Font Family`               | Wählen Sie eine Schriftfamilie (z.B. Arial, Georgia, Times New Roman).                                       |
+| `Font Size`                 | Schriftgröße mit Einheit (z.B. `16px`, `1.2em`, `100%`).                                                     |
+| `Font Weight`               | Schriftgewicht (z.B. Normal, Bold, 100-900).                                                                |
+| `Font Style`                | Schriftstil (z.B. Normal, Italic, Oblique).                                                                 |
+| `Text Color`                | Farbe des Textes (Auswahl über Farbpicker oder Hex-Code).                                                   |
+| `Line Height`               | Zeilenhöhe des Textes (z.B. `1.5`, `2`, `150%`).                                                             |
 
-1. Select the desired alignment (left, center, or right) in the text instance settings
-2. The text will be aligned according to your selection
-3. This respects the WordPress editor's alignment settings
+> **Hinweis:** Nachdem Sie eine neue Instanz hinzugefügt oder Änderungen an einer bestehenden Instanz vorgenommen haben, klicken Sie immer auf den `Save Instance`-Button innerhalb des jeweiligen Tabs, um Ihre Konfiguration zu speichern.
 
-## Font Customization
+## Technische Hinweise
 
-To customize the font appearance of your text:
+* **Abhängigkeiten:** Das Plugin verwendet Bootstrap 5.3.0 (via CDN) für die Gestaltung der Admin-Oberfläche und jQuery (standardmäßig in WordPress enthalten) für AJAX-Operationen.
+* **Datenhaltung:** Alle Konfigurationen der Textinstanzen werden in der WordPress-Optionentabelle (`wp_options`) gespeichert.
+* **Sicherheit:** Benutzereingaben werden serverseitig validiert und bereinigt (z.B. mittels `sanitize_text_field`, `wp_kses_post`). Nonces werden zur Absicherung von Formularübermittlungen verwendet.
+* **Performance:** Frontend-CSS für Rotationen wird nur geladen, wenn mindestens eine Instanz eine Rotationsgeschwindigkeit > 0 hat. Die Styles werden dynamisch generiert und sind spezifisch für die konfigurierten Instanzen.
 
-1. Expand the Font Settings section in the text instance settings
-2. Configure the following options:
-   - **Font Family**: Choose from common web-safe fonts (Arial, Helvetica, Georgia, etc.)
-   - **Font Size**: Set the size with units (e.g., 16px, 1.2em, 90%)
-   - **Font Weight**: Select the weight/boldness (normal, bold, 100-900)
-   - **Font Style**: Choose normal, italic, or oblique
-   - **Text Color**: Pick any color using the color picker
-   - **Line Height**: Set the spacing between lines (e.g., 1.5, 2, 150%)
-3. Each text instance can have its own font settings
-4. Changes apply immediately when you save the settings
+## Lizenz
 
-## Rotation Effect
-
-To add a rotation effect to your text:
-
-1. Set a rotation speed greater than 0 in the text instance settings
-2. Choose the rotation axis:
-   - **X-axis**: Rotates the text horizontally (flipping top to bottom)
-   - **Y-axis**: Rotates the text vertically (flipping left to right)
-   - **Z-axis**: Rotates the text in a circular motion (like a spinning wheel)
-3. The default axis is X-axis if none is selected
-4. The rotation is smooth and continuous at the specified speed (rotations per minute)
-
-## Translations
-
-The plugin is translation-ready and includes the following translations:
-- English (default)
-- German (de_DE)
-
-## Requirements
-
-- WordPress 5.0 or higher
-- PHP 7.0 or higher
-
-## License
-
-This plugin is licensed under the GPL v2 or later.
-
-## Author
-
-Created by ckitte
+Dieses Plugin steht unter der **GPL2** Lizenz. Details finden Sie in der Datei `license.txt` (nicht im Code enthalten, aber typisch für GPL2) oder unter [GNU General Public License v2.0](https://www.gnu.org/licenses/old-licenses/gpl-2.0.html).
